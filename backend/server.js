@@ -12,8 +12,8 @@ connectDB();
 const allowedOrigins = [
     "http://localhost:5173",
     "http://localhost:3000",
-    "https://rahul-admin.onrender.com/", // Production site admin
-    "https://rahul-portfolio-main.onrender.com/", // Production site portfolio
+    "https://rahul-admin.onrender.com", // Production site admin
+    "https://rahul-portfolio-main.onrender.com", // Production site portfolio
 ];
 
 app.use(cors({
