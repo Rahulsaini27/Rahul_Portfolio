@@ -1,23 +1,34 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { HiTrash, HiPlus } from 'react-icons/hi';
-   import { API_URL } from '../config';
+import { API_URL } from '../config';
+import Loading from '../components/Loading';
 
 const ServicesManager = () => {
     const [services, setServices] = useState([]);
     const [form, setForm] = useState({ title: '', description: '', pointInput: '' });
+    const [loading, setLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const token = localStorage.getItem('token');
 
     const fetchServices = async () => {
-        const res = await axios.get(`${API_URL}/content/services`);
-        setServices(res.data);
+        try {
+            const res = await axios.get(`${API_URL}/content/services`);
+            setServices(res.data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => { fetchServices(); }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         // Convert comma separated string to array
         const pointsArray = form.pointInput.split(',').map(item => item.trim());
         
@@ -32,6 +43,7 @@ const ServicesManager = () => {
             setForm({ title: '', description: '', pointInput: '' });
             fetchServices();
         } catch (err) { toast.error('Error adding service'); }
+        finally { setIsSubmitting(false); }
     };
 
     const handleDelete = async (id) => {
@@ -44,6 +56,8 @@ const ServicesManager = () => {
         } catch (err) { toast.error('Delete failed'); }
     };
 
+    if (loading) return <Loading />;
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
@@ -52,8 +66,12 @@ const ServicesManager = () => {
                     <input required placeholder="Title (e.g. Frontend Dev)" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#4ade80]" />
                     <textarea required placeholder="Description" rows="3" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#4ade80]"></textarea>
                     <textarea required placeholder="Points (Comma separated: Clean Code, fast, secure)" rows="3" value={form.pointInput} onChange={e => setForm({...form, pointInput: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#4ade80]"></textarea>
-                    <button type="submit" className="w-full bg-[#4ade80] text-white py-2.5 rounded-xl font-bold hover:bg-green-600 flex justify-center items-center gap-2">
-                        <HiPlus /> Add Service
+                    <button 
+                        type="submit" 
+                        disabled={isSubmitting}
+                        className="w-full bg-[#4ade80] text-white py-2.5 rounded-xl font-bold hover:bg-green-600 flex justify-center items-center gap-2 disabled:bg-green-300"
+                    >
+                        {isSubmitting ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div> : <><HiPlus /> Add Service</>}
                     </button>
                 </form>
             </div>

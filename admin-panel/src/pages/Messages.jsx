@@ -1,18 +1,25 @@
+
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { HiTrash, HiMail } from 'react-icons/hi';
-   import { API_URL } from '../config';
+import { API_URL } from '../config';
+import Loading from '../components/Loading';
 
 const Messages = () => {
     const [messages, setMessages] = useState([]);
+    const [loading, setLoading] = useState(true);
     const token = localStorage.getItem('token');
 
     const fetchMessages = async () => {
         try {
             const res = await axios.get(`${API_URL}/messages`, { headers: { 'x-auth-token': token } });
             setMessages(res.data);
-        } catch (err) { console.error(err); }
+        } catch (err) { 
+            console.error(err); 
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => { fetchMessages(); }, []);
@@ -25,6 +32,8 @@ const Messages = () => {
             fetchMessages();
         } catch { toast.error('Failed'); }
     };
+
+    if (loading) return <Loading />;
 
     return (
         <div>

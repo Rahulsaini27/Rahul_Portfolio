@@ -1,12 +1,15 @@
+
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { HiOutlineBriefcase, HiOutlineClipboardList, HiOutlineChatAlt2, HiOutlineUserGroup } from 'react-icons/hi';
-   import { API_URL } from '../config';
+import { HiOutlineBriefcase, HiOutlineClipboardList, HiOutlineChatAlt2 } from 'react-icons/hi';
+import { API_URL } from '../config';
+import Loading from '../components/Loading';
 
 const DashboardHome = () => {
     const [stats, setStats] = useState({ projects: 0, skills: 0, messages: 0 });
     const [recentProjects, setRecentProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
     const token = localStorage.getItem('token');
 
     useEffect(() => {
@@ -14,7 +17,7 @@ const DashboardHome = () => {
             try {
                 const [projRes, skillRes, msgRes] = await Promise.all([
                     axios.get(`${API_URL}/portfolio/projects`),
-                    axios.get(`${API_URL}/portfolio/skills` ),
+                    axios.get(`${API_URL}/portfolio/skills`),
                     axios.get(`${API_URL}/messages`, { headers: { 'x-auth-token': token } })
                 ]);
 
@@ -24,7 +27,11 @@ const DashboardHome = () => {
                     messages: msgRes.data.length
                 });
                 setRecentProjects(projRes.data.slice(0, 5));
-            } catch (error) { console.error("Error loading dashboard data"); }
+            } catch (error) { 
+                console.error("Error loading dashboard data"); 
+            } finally {
+                setLoading(false);
+            }
         };
         fetchData();
     }, []);
@@ -35,6 +42,8 @@ const DashboardHome = () => {
         { name: 'Messages', value: stats.messages },
     ];
     const COLORS = ['#10b981', '#3b82f6', '#f97316'];
+
+    if (loading) return <Loading />;
 
     return (
         <div className="space-y-8">

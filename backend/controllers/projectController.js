@@ -15,8 +15,8 @@ exports.getProjects = async (req, res) => {
 
 exports.addProject = async (req, res) => {
     try {
-        const { title, category, demoLink, repoLink } = req.body;
-        
+        const { title, category, demoLink, repoLink ,description } = req.body;
+        console.log(description);
         let imageUrl = '';
         if (req.file) {
             imageUrl = await uploadToFirebase(req.file, 'projects');
@@ -27,6 +27,7 @@ exports.addProject = async (req, res) => {
             category,
             demoLink,
             repoLink,
+            description,
             image: imageUrl
         });
 

@@ -1,23 +1,34 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { HiTrash, HiPlus } from 'react-icons/hi';
-   import { API_URL } from '../config';
+import { API_URL } from '../config';
+import Loading from '../components/Loading';
 
 const Experience = () => {
     const [qualifications, setQualifications] = useState([]);
     const [formData, setFormData] = useState({ type: 'Education', title: '', subtitle: '', calendar: '' });
+    const [loading, setLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const token = localStorage.getItem('token');
 
     const fetchQuals = async () => {
-        const res = await axios.get(`${API_URL}/content/qualifications`);
-        setQualifications(res.data);
+        try {
+            const res = await axios.get(`${API_URL}/content/qualifications`);
+            setQualifications(res.data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => { fetchQuals(); }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         try {
             await axios.post(`${API_URL}/content/qualifications`, formData, {
                 headers: { 'x-auth-token': token }
@@ -26,6 +37,7 @@ const Experience = () => {
             setFormData({ type: 'Education', title: '', subtitle: '', calendar: '' });
             fetchQuals();
         } catch (err) { toast.error('Error adding'); }
+        finally { setIsSubmitting(false); }
     };
 
     const handleDelete = async (id) => {
@@ -37,6 +49,8 @@ const Experience = () => {
             fetchQuals();
         } catch (err) { toast.error('Delete failed'); }
     };
+
+    if (loading) return <Loading />;
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -63,8 +77,12 @@ const Experience = () => {
                     <input required placeholder="Subtitle (e.g. University Name)" value={formData.subtitle} onChange={e => setFormData({...formData, subtitle: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#4ade80]" />
                     <input required placeholder="Duration (e.g. 2020 - 2024)" value={formData.calendar} onChange={e => setFormData({...formData, calendar: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#4ade80]" />
                     
-                    <button type="submit" className="w-full bg-[#4ade80] text-white py-2.5 rounded-xl font-bold hover:bg-green-600 flex justify-center items-center gap-2">
-                        <HiPlus /> Add Entry
+                    <button 
+                        type="submit" 
+                        disabled={isSubmitting}
+                        className="w-full bg-[#4ade80] text-white py-2.5 rounded-xl font-bold hover:bg-green-600 flex justify-center items-center gap-2 disabled:bg-green-300"
+                    >
+                        {isSubmitting ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div> : <><HiPlus /> Add Entry</>}
                     </button>
                 </form>
             </div>

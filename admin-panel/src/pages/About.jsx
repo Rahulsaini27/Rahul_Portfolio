@@ -2,13 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-   import { API_URL } from '../config';
+import { API_URL } from '../config';
+import Loading from '../components/Loading';
 
 const About = () => {
     const [description, setDescription] = useState('');
     const [info, setInfo] = useState([{ title: 'Experience', subtitle: '' }, { title: 'Completed', subtitle: '' }, { title: 'Support', subtitle: '' }]);
     const [files, setFiles] = useState({ image: null, cv: null });
     const [previews, setPreviews] = useState({ image: '', cvLink: '' });
+    const [loading, setLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const token = localStorage.getItem('token');
 
     useEffect(() => {
@@ -21,30 +24,38 @@ const About = () => {
                     if (res.data.image) setPreviews(prev => ({...prev, image: res.data.image}));
                     if (res.data.cv) setPreviews(prev => ({...prev, cvLink: res.data.cv}));
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error(err); 
+            } finally {
+                setLoading(false);
+            }
         };
         fetchData();
     }, []);
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        const formData = new FormData();
+        formData.append('description', description);
+        formData.append('info', JSON.stringify(info));
+        if (files.image) formData.append('image', files.image);
+        if (files.cv) formData.append('cv', files.cv);
 
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append('description', description);
-    formData.append('info', JSON.stringify(info));
-    if (files.image) formData.append('image', files.image);
-    if (files.cv) formData.append('cv', files.cv);
+        try {
+            await axios.put(`${API_URL}/content/about`, formData, {
+                headers: { 'x-auth-token': token }
+            });
 
-    try {
-        await axios.put(`${API_URL}/content/about`, formData, {
-            headers: { 'x-auth-token': token }
-        });
+            toast.success('About Section Updated');
+        } catch (err) {
+            toast.error('Update failed');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
-        toast.success('About Section Updated');
-    } catch (err) {
-        toast.error('Update failed');
-    }
-};
+    if (loading) return <Loading />;
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -60,7 +71,13 @@ const handleSubmit = async (e) => {
                     <div><label className="block text-sm font-bold mb-2">Image</label><div className="flex items-center gap-4">{previews.image && <img src={previews.image} className="w-16 h-16 rounded-lg object-cover" />}<input type="file" onChange={e => { setFiles({...files, image: e.target.files[0]}); setPreviews({...previews, image: URL.createObjectURL(e.target.files[0])}); }} /></div></div>
                     <div><label className="block text-sm font-bold mb-2">CV (PDF)</label><div className="flex items-center gap-4">{previews.cvLink && <a href={previews.cvLink} target="_blank" className="text-xs text-green-500 underline">View CV</a>}<input type="file" accept="application/pdf" onChange={e => setFiles({...files, cv: e.target.files[0]})} /></div></div>
                 </div>
-                <button type="submit" className="w-full bg-green-500 text-white py-3 rounded-xl font-bold hover:bg-green-600">Save Details</button>
+                <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full bg-green-500 text-white py-3 rounded-xl font-bold hover:bg-green-600 disabled:bg-green-300 flex justify-center items-center"
+                >
+                    {isSubmitting ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div> : "Save Details"}
+                </button>
             </form>
         </div>
     );

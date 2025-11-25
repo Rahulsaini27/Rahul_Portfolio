@@ -1,14 +1,18 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { HiSave } from 'react-icons/hi';
-   import { API_URL } from '../config';
+import { API_URL } from '../config';
+import Loading from '../components/Loading';
 
 const Hero = () => {
     const [formData, setFormData] = useState({
         title: '', subtitle: '', description: '', instagram: '', github: '', linkedin: '', email: '', image: null
     });
     const [preview, setPreview] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const token = localStorage.getItem('token');
 
     useEffect(() => {
@@ -26,13 +30,18 @@ const Hero = () => {
                     });
                     if(res.data.image) setPreview(res.data.image);
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error(err); 
+            } finally {
+                setLoading(false);
+            }
         };
         fetchHero();
     }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         const data = new FormData();
         Object.keys(formData).forEach(key => {
             if(formData[key]) data.append(key, formData[key]);
@@ -40,8 +49,14 @@ const Hero = () => {
         try {
             await axios.put(`${API_URL}/content/hero`, data, { headers: { 'x-auth-token': token } });
             toast.success('Hero Updated!');
-        } catch (err) { toast.error('Update failed'); }
+        } catch (err) { 
+            toast.error('Update failed'); 
+        } finally {
+            setIsSubmitting(false);
+        }
     };
+
+    if (loading) return <Loading />;
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -68,7 +83,13 @@ const Hero = () => {
                         </div>
                     </div>
                 </div>
-                <button type="submit" className="mt-8 w-full bg-green-500 text-white py-3 rounded-xl font-semibold hover:bg-green-600 transition">Update Hero</button>
+                <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="mt-8 w-full bg-green-500 text-white py-3 rounded-xl font-semibold hover:bg-green-600 transition disabled:bg-green-300 flex justify-center items-center"
+                >
+                    {isSubmitting ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div> : "Update Hero"}
+                </button>
             </form>
         </div>
     );
