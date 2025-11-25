@@ -1,0 +1,6 @@
+# Ignore node_modules in all project folders
+admin-panel/node_modules/
+backend/node_modules/
+My-Portfolio/node_modules/
+
+
