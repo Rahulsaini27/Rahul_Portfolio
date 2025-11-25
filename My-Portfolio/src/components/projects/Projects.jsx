@@ -9,10 +9,10 @@ const Projects = () => {
     const [item, setItem] = useState({ name: "All" });
     const [projects, setProjects] = useState([]);
     const [filteredProjects, setFilteredProjects] = useState([]);
-    const [visibleProjects, setVisibleProjects] = useState(4);
+    const [visibleProjects, setVisibleProjects] = useState(2); // Show 2 initially
     const [active, setActive] = useState(0);
-    
-    // State for Modal
+
+    // Modal State
     const [activeProject, setActiveProject] = useState(null);
 
     const projectsNav = [
@@ -44,7 +44,7 @@ const Projects = () => {
             });
             setFilteredProjects(newProjects);
         }
-        setVisibleProjects(4);
+        setVisibleProjects(2); // Reset visible count on filter change
     }, [item, projects]);
 
     const handleClick = (e, index) => {
@@ -56,13 +56,15 @@ const Projects = () => {
         setVisibleProjects((prevValue) => prevValue + 2);
     };
 
+   
+
     return (
         <div>
-            {/* Filter Items */}
+            {/* Filter Menu */}
             <div className="project__filters">
                 {projectsNav.map((item, index) => {
                     return (
-                        <span 
+                        <span
                             onClick={(e) => handleClick(e, index)}
                             className={`${active === index ? 'active__project' : ''} project__item`}
                             key={index}>
@@ -72,15 +74,15 @@ const Projects = () => {
                 })}
             </div>
 
-            {/* Projects Grid */}
+            {/* Grid Container */}
             <div className="project__container container grid">
                 {filteredProjects.length > 0 ? (
                     filteredProjects.slice(0, visibleProjects).map((item) => {
                         return (
-                            <ProjectItems 
-                                item={item} 
-                                key={item._id} 
-                                openModal={setActiveProject} // Pass function to open modal
+                            <ProjectItems
+                                item={item}
+                                key={item._id}
+                                openModal={setActiveProject}
                             />
                         )
                     })
@@ -96,35 +98,52 @@ const Projects = () => {
                 </button>
             )}
 
-            {/* --- POPUP MODAL --- */}
+            {/* --- MODAL --- */}
             <div className={activeProject ? "project__modal active-modal" : "project__modal"}>
                 <div className="project__modal-content">
-                    <HiX 
-                        onClick={() => setActiveProject(null)} 
-                        className="project__modal-close" 
+                    <HiX
+                        onClick={() => setActiveProject(null)}
+                        className="project__modal-close"
                     />
-                    
+
                     {activeProject && (
                         <>
-                            <img src={activeProject.image} alt={activeProject.title} className="project__modal-img" />
-                            
                             <h3 className="project__modal-title">{activeProject.title}</h3>
-                            
-                            <p className="project__modal-description">
-                                {activeProject.description || "No description available."}
-                            </p>
+
+
+                            <img
+                                src={activeProject.image}
+                                alt={activeProject.title}
+                                className="project__modal-img"
+                            />
+
+
+                            <div className="project__modal-badge-container">
+                                <span className="project__modal-badge">{activeProject.category}</span>
+                            </div>
+
+                            <div className="project__modal-description-box">
+                                <h4 className="project__modal-subtitle">Description</h4>
+                                <p className="project__modal-description">
+                                    {activeProject.description || "No description provided."}
+                                </p>
+                            </div>
 
                             <div className="project__modal-links">
-                                {activeProject.demoLink && (
-                                    <a href={activeProject.demoLink} target="_blank" rel="noreferrer" className="button button--flex">
-                                        Live Demo <HiOutlineExternalLink className="button__icon" />
+                                {activeProject.demoLink ? (
+                                    <a href={activeProject.demoLink} target="_blank" rel="noreferrer" className="project__btn project__btn--primary">
+                                        Live Demo <HiOutlineExternalLink />
                                     </a>
+                                ) : (
+                                    <button disabled className="project__btn project__btn--disabled">No Demo</button>
                                 )}
-                                
-                                {activeProject.repoLink && (
-                                    <a href={activeProject.repoLink} target="_blank" rel="noreferrer" className="button button--flex">
-                                        GitHub <HiCode className="button__icon" />
+
+                                {activeProject.repoLink ? (
+                                    <a href={activeProject.repoLink} target="_blank" rel="noreferrer" className="project__btn project__btn--secondary">
+                                        GitHub <HiCode />
                                     </a>
+                                ) : (
+                                    <button disabled className="project__btn project__btn--disabled">No Repo</button>
                                 )}
                             </div>
                         </>
